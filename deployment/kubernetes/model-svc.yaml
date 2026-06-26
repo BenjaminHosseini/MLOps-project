@@ -2,17 +2,39 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: model
-  name: model
+    app: fastapi
+  name: fastapi
+
 spec:
   ports:
   - name: "8000"
-    nodePort: 30100
-    port: 8000
+    nodePort: 30100   
+    port: 8000       
     protocol: TCP
-    targetPort: 8000
+    targetPort: 8000  
+
+  # Prometheus works by "scraping" — periodically making HTTP GET requests to
+  # /metrics on each target. This second port exposes the metrics endpoint so
+  # Prometheus can collect them without going through the NodePort externally.
+  #
+  # Traffic flow example (Prometheus inside cluster scrapes metrics):
+  #   Prometheus Pod  -->  Service port:9100  -->  Pod targetPort:9100
+  #
+  # Note: unlike the API port above, this one has NO nodePort, so it is only
+  # reachable from inside the cluster (like a ClusterIP port). Prometheus is
+  # deployed inside the cluster so it doesn't need external access.
+  #
+  - name: metrics     # Named "metrics" so the ServiceMonitor (KEDA/Prometheus
+                      # Operator) can reference it by name instead of number.
+                      # See: deployment/monitoring/servicemonitor.yaml
+
+    port: 9100        # The port Prometheus will target when scraping this Service.
+                      # Inside the cluster: http://fastapi:9100/metrics
+
+    targetPort: 9100  # The port the metrics server is listening on inside the Pod.
+                      # The prometheus_fastapi_instrumentator library exposes
+                      # Prometheus metrics here by default.
   selector:
-    app: model
+    app: fastapi
   type: NodePort
-status:
   loadBalancer: {}

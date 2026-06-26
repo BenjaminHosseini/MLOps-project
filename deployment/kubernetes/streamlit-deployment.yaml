@@ -17,8 +17,12 @@ spec:
     spec:
       containers:
       - image: benjaminhosseini/streamlit:dev
+        imagePullPolicy: Always
         name: streamlit
         ports:
-        - containerPort: 8501
+          - containerPort: 8501
         resources: {}
+        env:
+          - name: API_URL
+            value: "http://fastapi:8000"
 status: {}

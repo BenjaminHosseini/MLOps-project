@@ -1,23 +1,25 @@
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: model
-  name: model
+    app: fastapi
+  name: fastapi
 spec:
-  replicas: 2
+  replicas: 4
   selector:
     matchLabels:
-      app: model
+      app: fastapi
   strategy: {}
   template:
     metadata:
       labels:
-        app: model
+        app: fastapi
     spec:
       containers:
       - image: benjaminhosseini/house-price-model:latest
-        name: house-price-model
+        imagePullPolicy: Always
+        name: fastapi
         ports:
         - containerPort: 8000
         resources: 
